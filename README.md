@@ -10,11 +10,11 @@ This project implements the core building blocks found in low-latency market dat
 RXD (2 bits/cycle)
       │   
  ┌───────────┐   byte_out     ┌─────────────┐   payload_byte
- │ rmii_rx   │──────────────> │ eth_parser  │──────────────────>
+ │ rmii_rx   │───────────────>│ eth_parser  │──────────────────>
  │           │  byte_valid    │             │   payload_valid
- └───────────┘──────────────> │             │──────────────────>
+ └───────────┘───────────────>│             │──────────────────>
                               │             │   frame_error
-                       ┌───── │             │──────────────────>
+                       ┌─────>│             │──────────────────>
                        │      └─────────────┘
                        │             │ preamble_out
                        │             
