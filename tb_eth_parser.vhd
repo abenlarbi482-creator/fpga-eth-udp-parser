@@ -1,25 +1,4 @@
-----------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
--- 
--- Create Date: 01.08.2026
--- Design Name: 
--- Module Name: tb_eth_parser - Behavioral
--- Project Name: 
--- Target Devices: 
--- Tool Versions: 
--- Description: Testbench unitaire pour eth_parser SEUL (pas de rmii_rx, pas de crc32).
---              byte_in / byte_valid sont pilotes directement au niveau octet.
---              crc_in est pilote directement pour tester le chemin "CRC correct"
---              et le chemin "CRC incorrect" (frame_error).
--- 
--- Dependencies: 
--- 
--- Revision:
--- Revision 0.01 - File Created
--- Additional Comments:
--- 
-----------------------------------------------------------------------------------
+-- Testbench for eth_parser — drives byte_in/byte_valid/crc_in directly to test valid frames, CRC mismatches, and EtherType filtering.
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
