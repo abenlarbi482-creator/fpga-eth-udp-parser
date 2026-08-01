@@ -1,7 +1,5 @@
 # FPGA Ethernet/UDP Frame Parser
 
-🇫🇷 [Version française](README.fr.md)
-
 A VHDL pipeline that receives raw RMII signals, reassembles bytes, parses Ethernet/IPv4/UDP headers, extracts the UDP payload, and verifies frame integrity via CRC32.
 
 This project implements the core building blocks found in low-latency market data feed handlers: RMII frame reception, Ethernet/IP/UDP header parsing, payload extraction, and CRC-based integrity verification.
