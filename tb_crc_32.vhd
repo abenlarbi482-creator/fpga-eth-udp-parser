@@ -1,23 +1,4 @@
-----------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
--- 
--- Create Date: 01.08.2026
--- Design Name: 
--- Module Name: tb_crc32 - Behavioral
--- Project Name: 
--- Target Devices: 
--- Tool Versions: 
--- Description: Testbench unitaire pour crc32 SEUL (pas de rmii_rx, pas de eth_parser).
---              byte_in / byte_valid / preamble_out / CRS_DV sont pilotes directement.
--- 
--- Dependencies: 
--- 
--- Revision:
--- Revision 0.01 - File Created
--- Additional Comments:
--- 
-----------------------------------------------------------------------------------
+-- Testbench for crc32 — verifies reset behavior, correct accumulation gating (preamble_out/byte_valid/CRS_DV), and the final CRC residue against a reference frame.
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
@@ -81,9 +62,8 @@ port map( clk          => clk,
 
 process
 begin
-    ----------------------------------------------------------------
+  
     -- RESET
-    ----------------------------------------------------------------
     rst          <= '1';
     CRS_DV       <= '0';
     preamble_out <= '0';
@@ -101,11 +81,9 @@ begin
 
     wait for 100 ns;
 
-    ----------------------------------------------------------------
     -- TEST 1 : trame valide -> residu final attendu = CRC_OK
     --          on envoie d'abord un faux "preambule" (preamble_out='0')
     --          pour verifier qu'il n'est PAS accumule dans le CRC
-    ----------------------------------------------------------------
     CRS_DV <= '1';
 
     -- octets de preambule envoyes AVANT que preamble_out ne passe a '1'
@@ -122,10 +100,9 @@ begin
     -- juste apres detection du SFD
     preamble_out <= '1';
 
-    ----------------------------------------------------------------
     -- DST MAC + SRC MAC + ETHERTYPE + IP HEADER + UDP HEADER + PAYLOAD
     -- (memes octets que dans la trame de reference deja validee)
-    ----------------------------------------------------------------
+
     send_byte(byte_in, byte_valid, clk, x"11");
     send_byte(byte_in, byte_valid, clk, x"22");
     send_byte(byte_in, byte_valid, clk, x"33");
@@ -185,9 +162,8 @@ begin
     send_byte(byte_in, byte_valid, clk, x"BE");
     send_byte(byte_in, byte_valid, clk, x"EF");
 
-    ----------------------------------------------------------------
+
     -- FCS (4 octets) -> lui aussi accumule dans le CRC par ce design
-    ----------------------------------------------------------------
     send_byte(byte_in, byte_valid, clk, x"6F");
     send_byte(byte_in, byte_valid, clk, x"7B");
     send_byte(byte_in, byte_valid, clk, x"72");
@@ -199,9 +175,8 @@ begin
 
     wait for 40 ns;
 
-    ----------------------------------------------------------------
+
     -- TEST 2 : CRS_DV retombe a '0' -> crc_out doit revenir a FFFFFFFF
-    ----------------------------------------------------------------
     CRS_DV       <= '0';
     preamble_out <= '0';
     wait until rising_edge(clk);
@@ -212,10 +187,9 @@ begin
 
     wait for 100 ns;
 
-    ----------------------------------------------------------------
+
     -- TEST 3 : byte_valid='0' ne doit jamais faire evoluer le CRC,
     --          meme si preamble_out='1' et CRS_DV='1'
-    ----------------------------------------------------------------
     CRS_DV       <= '1';
     preamble_out <= '1';
     byte_in      <= x"AB";
