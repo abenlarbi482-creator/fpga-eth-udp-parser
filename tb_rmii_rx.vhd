@@ -98,9 +98,8 @@ begin
         report "TEST 2 : byte_valid aurait du retomber a '0' un cycle apres le pulse"
         severity error;
 
-    ----------------------------------------------------------------
+
     -- TEST 3 : deuxieme octet a la suite, verifie l'enchainement
-    ----------------------------------------------------------------
     send_byte(RXD, clk_50, x"3C");
     wait until rising_edge(clk_50);
 
