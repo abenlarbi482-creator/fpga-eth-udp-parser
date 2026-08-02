@@ -17,13 +17,19 @@ signal byte_valid     : std_logic := '0';
 signal crc_in         : std_logic_vector(31 downto 0) := (others => '0');
 signal payload_byte   : std_logic_vector(7 downto 0);
 signal payload_valid  : std_logic;
+signal payload_length : std_logic_vector(15 downto 0);
+signal payload_last   : std_logic;
+signal frame_validated: std_logic;
 signal frame_error    : std_logic;
+signal frame_damaged  : std_logic;
 signal preamble_out   : std_logic;
 
 -- valeur magique attendue par eth_parser en fin de trame pour un CRC valide
 constant CRC_OK : std_logic_vector(31 downto 0) := x"DEBB20E3";
+constant MY_MAC : std_logic_vector(47 downto 0) := x"112233445566";
 
 component eth_parser is
+   generic(ADDR_MAC : std_logic_vector(47 downto 0));
    Port (clk_50: in std_logic;
          rst : in std_logic;
          CRS_DV : in std_logic;
@@ -32,7 +38,11 @@ component eth_parser is
          crc_in : in std_logic_vector( 31 downto 0);
          payload_byte : out std_logic_vector( 7 downto 0 );
          payload_valid : out std_logic;
+         payload_length : out std_logic_vector(15 downto 0);
+         payload_last : out std_logic;
+         frame_validated : out std_logic;
          frame_error : out std_logic;
+         frame_damaged : out std_logic;
          preamble_out : out std_logic
            );
 end component;
@@ -56,6 +66,7 @@ begin
 clk_50 <= not(clk_50) after 10 ns;
 
 DUT : eth_parser
+generic map(ADDR_MAC => MY_MAC)
 port map(clk_50       => clk_50,
           rst          => rst,
           CRS_DV       => CRS_DV,
@@ -64,7 +75,11 @@ port map(clk_50       => clk_50,
           crc_in       => crc_in,
           payload_byte => payload_byte,
           payload_valid=> payload_valid,
+          payload_length => payload_length,
+          payload_last => payload_last,
+          frame_validated => frame_validated,
           frame_error  => frame_error,
+          frame_damaged => frame_damaged,
           preamble_out => preamble_out
     );
 
@@ -79,7 +94,7 @@ begin
     wait for 100 ns;
     rst <= '0';
     wait for 100 ns;
-    -- TRAME 1 : trame valide, CRC correct -> frame_error doit rester '0'
+    -- TRAME 1 : trame valide, CRC correct -> frame_validated doit passer a '1'
     CRS_DV <= '1';
     wait for 10 ns;
     -- SFD (le preambule 0x55 n'a pas besoin d'etre envoye, eth_parser
@@ -148,15 +163,16 @@ begin
     -- on donne un crc_in correct AVANT la chute de CRS_DV, comme le ferait crc32
     crc_in <= CRC_OK;
     wait until rising_edge(clk_50);
-    -- FIN DE TRAME 1 -> verification frame_error = '0'
+    -- FIN DE TRAME 1 -> verification frame_validated = '1'
     CRS_DV <= '0';
     wait until rising_edge(clk_50);
-    assert frame_error = '0'
-        report "TRAME 1 (CRC correct) : frame_error inattendu a '1'"
+    wait until rising_edge(clk_50);
+    assert frame_validated = '1'
+        report "TRAME 1 (CRC correct) : frame_validated aurait du passer a '1'"
         severity error;
     wait for 100 ns;
     -- TRAME 2 : meme trame mais CRC volontairement faux
-    --           -> frame_error doit passer a '1'
+    --           -> frame_damaged doit passer a '1'
     CRS_DV <= '1';
 
     send_byte(byte_in, byte_valid, clk_50, x"D5");  -- SFD
@@ -227,9 +243,9 @@ begin
 
     CRS_DV <= '0';
     wait until rising_edge(clk_50);
-
-    assert frame_error = '1'
-        report "TRAME 2 (CRC errone) : frame_error aurait du passer a '1'"
+    wait until rising_edge(clk_50);
+    assert frame_damaged = '1'
+        report "TRAME 2 (CRC errone) : frame_damaged aurait du passer a '1'"
         severity error;
 
     wait for 100 ns;
