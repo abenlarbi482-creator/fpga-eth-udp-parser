@@ -1,4 +1,4 @@
--- testbench for rmii_rx — sends full bytes via clock-aligned RMII nibbles and asserts correct byte reassembly, single-cycle byte_valid pulse,
+-- testbench for rmii_rx - sends full bytes via clock-aligned RMII nibbles and asserts correct byte reassembly, single-cycle byte_valid pulse,
 -- and reset behavior when CRS_DV drops mid-byte.
 
 library IEEE;
@@ -65,6 +65,7 @@ begin
     CRS_DV <= '0';
     RXD    <= "00";
     wait until rising_edge(clk_50);
+    wait until rising_edge(clk_50);
 
     assert byte_out = x"00" and byte_valid = '0'
         report "TEST 0 : byte_out/byte_valid devraient etre a 0 quand CRS_DV='0'"
@@ -75,8 +76,6 @@ begin
 
     -- TEST 1 : envoi d'un octet complet 0xA5, verifie byte_out/byte_valid
     CRS_DV <= '1';
-    wait until rising_edge(clk_50);
-
     send_byte(RXD, clk_50, x"A5");
 
     -- au cycle suivant le 4eme nibble, byte_out et byte_valid sont mis a jour
@@ -97,6 +96,10 @@ begin
     assert byte_valid = '0'
         report "TEST 2 : byte_valid aurait du retomber a '0' un cycle apres le pulse"
         severity error;
+   CRS_DV <= '0'; 
+   wait until rising_edge(clk_50);
+   CRS_DV <= '1';
+     
 
 
     -- TEST 3 : deuxieme octet a la suite, verifie l'enchainement
@@ -118,10 +121,11 @@ begin
     RXD <= "01";
     wait until rising_edge(clk_50);
     RXD <= "10";
-    wait until rising_edge(clk_50);
-
+    wait for 10 ns;
     CRS_DV <= '0';
     wait until rising_edge(clk_50);
+    wait until rising_edge(clk_50);
+    
 
     assert byte_out = x"00" and byte_valid = '0'
         report "TEST 4 : byte_out/byte_valid auraient du etre remis a 0 quand CRS_DV repasse a '0'"
