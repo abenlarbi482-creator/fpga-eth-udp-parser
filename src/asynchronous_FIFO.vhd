@@ -28,7 +28,7 @@ architecture Behavioral of asynchronous_FIFO is
     signal cpt_write_bi : unsigned(FIFO_MSB +1  downto 0);
     signal cpt_write_Gr : unsigned(FIFO_MSB +1 downto 0);
     signal cpt_write_Gr_1ff : unsigned(FIFO_MSB +1 downto 0);
-    signal cpt_write_Gr_2ff : unsigned(FIFO_MSB  +1downto 0);
+    signal cpt_write_Gr_2ff : unsigned(FIFO_MSB  +1 downto 0);
     signal cpt_read_bi : unsigned(FIFO_MSB +1 downto 0);
     signal cpt_read_Gr : unsigned(FIFO_MSB +1 downto 0);
     signal cpt_read_Gr_1ff : unsigned(FIFO_MSB +1 downto 0);
